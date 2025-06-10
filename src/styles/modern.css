@@ -1,0 +1,161 @@
+
+:root {
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --background: #f9fafb;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --border: #e5e7eb;
+  --radius: 12px;
+  --transition: 0.3s ease-in-out;
+  --shadow: 0 10px 15px rgba(0, 0, 0, 0.05);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--background);
+  color: var(--text);
+  height: 100%;
+}
+
+main {
+  max-width: 800px;
+  margin: 3rem auto;
+  background: var(--surface);
+  padding: 2rem 3rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+h1, h2 {
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+p {
+  margin: 0.5rem 0;
+}
+
+label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+input[type="password"], select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+  transition: border var(--transition);
+}
+
+input:focus, select:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background var(--transition);
+  box-shadow: var(--shadow);
+}
+
+button:hover {
+  background-color: var(--primary-dark);
+}
+
+.card {
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--background);
+  box-shadow: var(--shadow);
+  animation: fadeIn 0.5s ease;
+}
+
+.audio-player {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.loading {
+  font-size: 1.2rem;
+  color: var(--primary);
+  text-align: center;
+  margin-top: 3rem;
+}
+
+@media (max-width: 600px) {
+  main {
+    padding: 1.5rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+}
+
+button.goed {
+  background-color: #22c55e; /* groen */
+}
+button.goed:hover {
+  background-color: #16a34a;
+}
+
+button.afgekeurd {
+  background-color: #ef4444; /* rood */
+}
+button.afgekeurd:hover {
+  background-color: #dc2626;
+}
+
+.toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  animation: fadeInOut 1.6s ease-in-out forwards;
+  z-index: 9999;
+}
+
+.toast.goed {
+  background-color: #16a34a;
+}
+
+.toast.afgekeurd {
+  background-color: #dc2626;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}

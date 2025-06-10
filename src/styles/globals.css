@@ -1,0 +1,97 @@
+:root {
+  --background: #faf8f6;
+  --foreground: #1f1f1f;
+  --primary: #2f80ed;
+  --primary-hover: #1c6fe4;
+  --card-bg: #ffffff;
+  --border: #e0e0e0;
+  --accent: #f2f2f2;
+  --radius: 12px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+main {
+  width: 100%;
+  max-width: 1000px;
+  padding: 2rem 3rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+
+
+
+h1, h2 {
+  margin-bottom: 1rem;
+}
+
+button {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+button:hover {
+  background-color: var(--primary-hover);
+}
+
+input[type="password"] {
+  padding: 0.6rem;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 1rem;
+}
+
+audio {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+p {
+  margin-bottom: 0.5rem;
+}
+
+section {
+  margin-top: 2rem;
+}
+
+.card {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--accent);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+}
+
+body, html {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
