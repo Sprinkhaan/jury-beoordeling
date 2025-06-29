@@ -11,9 +11,9 @@ export default function handler(req, res) {
   }
 
   const beoordeling = { ...req.body, timestamp: new Date().toISOString() };
-  const { beoordeling: oordeel, categorie, riwaya, kandidaat_id } = beoordeling;
+  const { beoordeling: oordeel, categorie, leeftijdsgroep, kandidaat_id } = beoordeling;
 
-  if (!oordeel || !categorie || !riwaya || !kandidaat_id) {
+  if (!oordeel || !categorie || !leeftijdsgroep || !kandidaat_id) {
     return res.status(400).json({ message: "Ontbrekende gegevens" });
   }
 
@@ -23,8 +23,9 @@ export default function handler(req, res) {
   else if (categorie.toLowerCase().includes("vrouw")) prefix = "vrouwen";
   else return res.status(400).json({ message: "Onbekende categorie" });
 
-  const bronBestand = `${prefix}-${riwaya.toLowerCase()}.json`;
-  const doelBestand = `${oordeel.toLowerCase() === "ja" ? "ja" : "nee"}_${prefix}_${riwaya.toLowerCase()}.json`;
+  const bestandKey = `${prefix}-${leeftijdsgroep.replace(/\s/g, "-")}`.toLowerCase();
+  const bronBestand = `${bestandKey}.json`;
+  const doelBestand = `${oordeel.toLowerCase()}_${bestandKey}.json`;
 
   const bronPad = path.join(basePath, bronBestand);
   const doelPad = path.join(basePath, doelBestand);
@@ -34,18 +35,20 @@ export default function handler(req, res) {
     const doelData = fs.existsSync(doelPad) ? JSON.parse(fs.readFileSync(doelPad, "utf-8")) : [];
 
     const kandidaat = bronData.find((k) => String(k.id) === String(kandidaat_id));
-    if (!kandidaat) return res.status(404).json({ message: "Kandidaat niet gevonden in originele bestand" });
+    if (!kandidaat) {
+      return res.status(404).json({ message: "Kandidaat niet gevonden in originele bestand" });
+    }
 
     const overblijvers = bronData.filter((k) => String(k.id) !== String(kandidaat_id));
-    doelData.push({ ...kandidaat, beoordeling: oordeel, timestamp: beoordeling.timestamp });
+    doelData.push({ ...kandidaat, beoordeling: oordeel, timestamp: beoordeling.timestamp, jurylid: beoordeling.jurylid });
 
     fs.writeFileSync(bronPad, JSON.stringify(overblijvers, null, 2));
     fs.writeFileSync(doelPad, JSON.stringify(doelData, null, 2));
 
-    console.log(`Kandidaat ${kandidaat_id} verplaatst naar ${doelBestand}`);
+    console.log(`📦 Kandidaat ${kandidaat_id} verplaatst naar ${doelBestand}`);
     return res.status(200).json({ message: "Beoordeling opgeslagen" });
   } catch (err) {
-    console.error("Fout bij verwerken beoordeling:", err);
+    console.error("❌ Fout bij verwerken beoordeling:", err);
     return res.status(500).json({ message: "Fout bij verwerken beoordeling" });
   }
 }

@@ -1,4 +1,3 @@
-// src/pages/dashboard.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { fetchVolgendeKandidaat } from "../lib/apiClient";
@@ -7,30 +6,53 @@ export default function Dashboard() {
   const [kandidaat, setKandidaat] = useState(null);
   const [loading, setLoading] = useState(true);
   const [categorie, setCategorie] = useState("");
-  const [riwaya, setRiwaya] = useState("");
+  const [leeftijdsgroep, setLeeftijdsgroep] = useState("");
+  const [jurylid, setJurylid] = useState("");
   const [toast, setToast] = useState({ message: "", type: "" });
+  const [stats, setStats] = useState({ ja: 0, nee: 0, twijfel: 0, resterend: 0 });
+
   const router = useRouter();
 
   useEffect(() => {
     const isAuth = localStorage.getItem("auth");
     const cat = localStorage.getItem("categorie");
-    const riw = localStorage.getItem("riwaya");
+    const groep = localStorage.getItem("leeftijdsgroep");
+    const lid = localStorage.getItem("jurylid");
 
-    if (!isAuth || !cat || !riw) {
+    if (!isAuth || !cat || !groep || !lid) {
       router.push("/");
       return;
     }
 
     setCategorie(cat);
-    setRiwaya(riw);
-    laadVolgende(cat, riw);
+    setLeeftijdsgroep(groep);
+    setJurylid(lid);
+    laadVolgende(cat, groep);
+    laadStats(cat, groep);
   }, []);
 
-  const laadVolgende = async (cat, riw) => {
+  const laadVolgende = async (cat, groep) => {
     setLoading(true);
-    const volgende = await fetchVolgendeKandidaat(cat, riw);
+    const volgende = await fetchVolgendeKandidaat(cat, groep);
     setKandidaat(volgende);
     setLoading(false);
+  };
+
+  const laadStats = async (cat, groep) => {
+    try {
+      const res = await fetch(`/api/telling?categorie=${cat}&groep=${groep}`);
+      if (!res.ok) throw new Error("Stats ophalen mislukt");
+
+      const data = await res.json();
+      setStats({
+        ja: data.ja || 0,
+        nee: data.nee || 0,
+        twijfel: data.twijfel || 0,
+        resterend: data.resterend || 0,
+      });
+    } catch (err) {
+      console.error("Fout bij laden van stats:", err.message);
+    }
   };
 
   const showToast = (message, type) => {
@@ -45,10 +67,11 @@ export default function Dashboard() {
       telefoon: kandidaat.telefoon,
       audio_url: kandidaat.audio_url,
       categorie,
-      riwaya,
+      leeftijdsgroep,
+      riwaya: kandidaat.riwaya,
       beoordeling: keuze,
       timestamp: new Date().toISOString(),
-      jurylid: localStorage.getItem("auth"),
+      jurylid,
     };
 
     try {
@@ -60,14 +83,19 @@ export default function Dashboard() {
 
       if (!res.ok) throw new Error(await res.text());
 
-      showToast(
-        keuze === "ja" ? "Goedkeuring opgeslagen" : "Afwijzing opgeslagen",
-        keuze === "ja" ? "goed" : "afgekeurd"
-      );
+      const messages = {
+        ja: { msg: "✅ Goedgekeurd", type: "goed" },
+        nee: { msg: "❌ Afgewezen", type: "afgekeurd" },
+        twijfel: { msg: "⚠️ Twijfel opgeslagen", type: "twijfel" },
+      };
+
+      const { msg, type } = messages[keuze] || {};
+      showToast(msg, type);
 
       setTimeout(() => {
         setToast({ message: "", type: "" });
-        laadVolgende(categorie, riwaya);
+        laadVolgende(categorie, leeftijdsgroep);
+        laadStats(categorie, leeftijdsgroep);
       }, 1600);
     } catch (err) {
       console.error("Fout bij opslaan beoordeling:", err);
@@ -75,10 +103,8 @@ export default function Dashboard() {
     }
   };
 
-    const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("categorie");
-    localStorage.removeItem("riwaya");
+  const handleLogout = () => {
+    localStorage.clear();
     router.push("/");
   };
 
@@ -87,31 +113,45 @@ export default function Dashboard() {
 
   return (
     <main>
-      {toast.message && (
-        <div className={`toast ${toast.type}`}>{toast.message}</div>
-      )}
+      {toast.message && <div className={`toast ${toast.type}`}>{toast.message}</div>}
 
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+      <header style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "2rem"
+      }}>
         <div>
-          <h2 style={{ marginBottom: "0.25rem" }}>Beoordelen:</h2>
-          <p style={{ fontWeight: "bold" }}>{categorie} – Riwaya: {riwaya}</p>
+          <h2>Beoordelen: {categorie.toUpperCase()} ({leeftijdsgroep})</h2>
+          <p style={{ marginTop: "0.5rem" }}><strong>Jury:</strong> {jurylid}</p>
         </div>
         <button onClick={handleLogout} style={{ background: "#ef4444" }}>Uitloggen</button>
       </header>
 
+      <section style={{
+        marginBottom: "2rem",
+        background: "#f1f5f9",
+        padding: "1rem",
+        borderRadius: "8px"
+      }}>
+        <h3>📊 Voortgang:</h3>
+        <p>✅ Goedgekeurd: {stats.ja}</p>
+        <p>❌ Afgewezen: {stats.nee}</p>
+        <p>⚠️ Twijfel: {stats.twijfel}</p>
+        <p>🕐 Nog te beoordelen: {stats.resterend}</p>
+      </section>
+
       <div className="card">
-        <p><strong>Kandidaat ID:</strong> {kandidaat.id}</p>
+        <p><strong>ID:</strong> {kandidaat.id}</p>
         <p><strong>Naam:</strong> {kandidaat.naam || "Onbekend"}</p>
+        <p><strong>Riwaya:</strong> {kandidaat.riwaya || "Onbekend"}</p>
         <audio className="audio-player" controls src={kandidaat.audio_url}></audio>
       </div>
 
       <div className="button-group">
-        <button className="goed" onClick={() => handleBeoordeling("ja")}>
-          Goedkeuren
-        </button>
-        <button className="afgekeurd" onClick={() => handleBeoordeling("nee")}>
-          Afwijzen
-        </button>
+        <button className="goed" onClick={() => handleBeoordeling("ja")}>Goedkeuren</button>
+        <button className="afgekeurd" onClick={() => handleBeoordeling("nee")}>Afwijzen</button>
+        <button className="twijfel" onClick={() => handleBeoordeling("twijfel")}>Twijfel</button>
       </div>
     </main>
   );

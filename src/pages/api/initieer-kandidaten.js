@@ -48,6 +48,16 @@ export default async function handler(req, res) {
     const audio = entry["21"] || entry["33"] || entry["11"] || "";
     const categorie = entry["3"] || "";
     const riwaya = entry["36"] || entry["20"] || entry["32"] || "";
+    const cat = categorie.toLowerCase();
+
+    let leeftijd = "";
+    if (cat.includes("kind")) {
+      leeftijd = entry["8"] || "";
+    } else if (cat.includes("man")) {
+      leeftijd = entry["29"] || "";
+    } else if (cat.includes("vrouw")) {
+      leeftijd = entry["17"] || "";
+    }
 
     return {
       id: entry.id,
@@ -57,6 +67,7 @@ export default async function handler(req, res) {
       audio_url: audio,
       categorie,
       riwaya,
+      leeftijd: leeftijd.toString().trim(),
     };
   });
 
@@ -64,18 +75,31 @@ export default async function handler(req, res) {
   const groepen = {};
 
   for (const kandidaat of kandidaten) {
-    const { categorie, riwaya } = kandidaat;
-    if (!categorie || !riwaya) continue;
+    const { categorie, leeftijd } = kandidaat;
+    const age = parseInt(leeftijd);
+    const cat = categorie.toLowerCase();
 
-    let prefix = "";
-    if (categorie.toLowerCase().includes("kind")) prefix = "kinder";
-    else if (categorie.toLowerCase().includes("man")) prefix = "mannen";
-    else if (categorie.toLowerCase().includes("vrouw")) prefix = "vrouwen";
-    else continue;
+    let groep = "";
 
-    const key = `${prefix}-${riwaya.toLowerCase()}`;
-    if (!groepen[key]) groepen[key] = [];
-    groepen[key].push(kandidaat);
+    if (cat.includes("kind")) {
+      if (age >= 4 && age <= 5) groep = "kinder-4-5";
+      else if (age >= 6 && age <= 8) groep = "kinder-6-8";
+      else if (age >= 9 && age <= 12) groep = "kinder-9-12";
+    } else if (cat.includes("man")) {
+      if (age >= 13 && age <= 17) groep = "mannen-13-17";
+      else if (age >= 18) groep = "mannen-18plus";
+    } else if (cat.includes("vrouw")) {
+      if (age >= 13 && age <= 17) groep = "vrouwen-13-17";
+      else if (age >= 18) groep = "vrouwen-18plus";
+    }
+
+    if (!groep) {
+      console.warn(`⚠️ Niet herkend: categorie='${categorie}' leeftijd='${leeftijd}'`);
+      continue;
+    }
+
+    if (!groepen[groep]) groepen[groep] = [];
+    groepen[groep].push(kandidaat);
   }
 
   for (const [bestandNaam, lijst] of Object.entries(groepen)) {

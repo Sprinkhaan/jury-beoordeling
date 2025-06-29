@@ -112,9 +112,17 @@ button:hover {
     padding: 1.5rem;
   }
 
-  .button-group {
-    flex-direction: column;
-  }
+.button-group button {
+  flex: 1;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: background var(--transition), transform 0.15s ease;
+}
+
+.button-group button:hover {
+  transform: scale(1.03);
+}
+
 }
 
 button.goed {
@@ -131,18 +139,11 @@ button.afgekeurd:hover {
   background-color: #dc2626;
 }
 
-.toast {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  color: white;
-  font-weight: 600;
-  box-shadow: var(--shadow);
-  opacity: 0;
-  animation: fadeInOut 1.6s ease-in-out forwards;
-  z-index: 9999;
+button.twijfel {
+  background-color: #2563eb; /* blauw */
+}
+button.twijfel:hover {
+  background-color: #1d4ed8;
 }
 
 .toast.goed {
@@ -158,4 +159,37 @@ button.afgekeurd:hover {
   10% { opacity: 1; transform: translateY(0); }
   90% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius);
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow);
+  z-index: 9999;
+  animation: toastFade 1.6s ease-in-out forwards;
+}
+
+.toast.goed {
+  background-color: #22c55e;
+}
+
+.toast.afgekeurd {
+  background-color: #ef4444;
+}
+
+.toast.twijfel {
+  background-color: #2563eb;
+}
+
+@keyframes toastFade {
+  0% { opacity: 0; transform: translateY(-8px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
 }

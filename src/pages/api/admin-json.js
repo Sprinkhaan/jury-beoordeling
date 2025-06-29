@@ -1,5 +1,27 @@
+// src/pages/api/admin-json.js
+
 import fs from "fs";
 import path from "path";
+
+// Genereer geldige bestandsnamen (veiligheidsmaatregel)
+const CATEGORIEEN = ["kinder", "mannen", "vrouwen"];
+const LEEFTIJDSGROEPEN = {
+  kinder: ["4-5", "6-8", "9-12"],
+  mannen: ["13-17", "18plus"],
+  vrouwen: ["13-17", "18plus"],
+};
+
+const toegestaneBestanden = [];
+
+for (const cat of CATEGORIEEN) {
+  for (const groep of LEEFTIJDSGROEPEN[cat]) {
+    const basis = `${cat}-${groep}.json`;
+    toegestaneBestanden.push(basis);
+    toegestaneBestanden.push(`ja_${basis}`);
+    toegestaneBestanden.push(`nee_${basis}`);
+    toegestaneBestanden.push(`twijfel_${basis}`);
+  }
+}
 
 export default function handler(req, res) {
   if (req.method !== "GET") {
@@ -15,16 +37,19 @@ export default function handler(req, res) {
 
   const bestand = req.query.bestand;
 
-  if (!bestand) {
-    return res.status(400).json({ message: "Bestandsnaam ontbreekt" });
+  if (!bestand || !toegestaneBestanden.includes(bestand)) {
+    return res.status(400).json({ message: "Ongeldig of ontbrekend bestandsnaam" });
   }
 
-  const bestandPath = path.join(process.cwd(), "data", bestand);
+  const bestandPad = path.join(process.cwd(), "data", bestand);
 
   try {
-    const inhoud = fs.readFileSync(bestandPath, "utf-8");
+    const inhoud = fs.readFileSync(bestandPad, "utf-8");
     return res.status(200).json(JSON.parse(inhoud));
   } catch (err) {
-    return res.status(500).json({ message: "Fout bij lezen bestand", error: err.message });
+    return res.status(500).json({
+      message: "Fout bij lezen bestand",
+      error: err.message,
+    });
   }
 }

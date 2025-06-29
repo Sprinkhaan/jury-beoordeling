@@ -4,24 +4,39 @@ import fs from "fs";
 import path from "path";
 
 const bestandsnamen = [
-  "ja_kinder_hafs.json",
-  "ja_kinder_warsh.json",
-  "ja_mannen_hafs.json",
-  "ja_mannen_warsh.json",
-  "ja_vrouwen_hafs.json",
-  "ja_vrouwen_warsh.json",
-  "nee_kinder_hafs.json",
-  "nee_kinder_warsh.json",
-  "nee_mannen_hafs.json",
-  "nee_mannen_warsh.json",
-  "nee_vrouwen_hafs.json",
-  "nee_vrouwen_warsh.json",
-  "kinder-hafs.json",
-  "kinder-warsh.json",
-  "mannen-hafs.json",
-  "mannen-warsh.json",
-  "vrouwen-hafs.json",
-  "vrouwen-warsh.json",
+  // Kinder
+  "kinder-4-5.json",
+  "kinder-6-8.json",
+  "kinder-9-12.json",
+  "ja_kinder-4-5.json",
+  "ja_kinder-6-8.json",
+  "ja_kinder-9-12.json",
+  "nee_kinder-4-5.json",
+  "nee_kinder-6-8.json",
+  "nee_kinder-9-12.json",
+  "twijfel_kinder-4-5.json",
+  "twijfel_kinder-6-8.json",
+  "twijfel_kinder-9-12.json",
+
+  // Mannen
+  "mannen-13-17.json",
+  "mannen-18plus.json",
+  "ja_mannen-13-17.json",
+  "ja_mannen-18plus.json",
+  "nee_mannen-13-17.json",
+  "nee_mannen-18plus.json",
+  "twijfel_mannen-13-17.json",
+  "twijfel_mannen-18plus.json",
+
+  // Vrouwen
+  "vrouwen-13-17.json",
+  "vrouwen-18plus.json",
+  "ja_vrouwen-13-17.json",
+  "ja_vrouwen-18plus.json",
+  "nee_vrouwen-13-17.json",
+  "nee_vrouwen-18plus.json",
+  "twijfel_vrouwen-13-17.json",
+  "twijfel_vrouwen-18plus.json",
 ];
 
 export default function handler(req, res) {
@@ -50,14 +65,24 @@ export default function handler(req, res) {
     }
   });
 
+  // Zet ronde-status.json terug naar ronde 1
+  const rondeStatusPad = path.join(dataMap, "ronde-status.json");
+  try {
+    fs.writeFileSync(rondeStatusPad, JSON.stringify({ ronde: 1 }, null, 2), "utf-8");
+    console.log("🔄 Ronde-status teruggezet naar 1.");
+  } catch (err) {
+    console.error("⚠️ Fout bij schrijven ronde-status.json:", err.message);
+    errors.push({ bestand: "ronde-status.json", fout: err.message });
+  }
+
   if (errors.length > 0) {
-    console.error("⚠ Fouten bij reset:", errors);
+    console.error("⚠️ Fouten bij reset:", errors);
     return res.status(500).json({
       message: "Sommige bestanden konden niet worden geleegd.",
       errors,
     });
   }
 
-  console.log(`✅ ${successCount} bestanden succesvol geleegd.`);
+  console.log(`🧹 Reset voltooid: ${successCount} bestanden leeggemaakt.`);
   return res.status(200).json({ message: `Alle ${successCount} bestanden succesvol geleegd.` });
 }
