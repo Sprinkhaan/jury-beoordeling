@@ -51,10 +51,12 @@ export default function handler(req, res) {
   }
 
   const dataMap = path.join(process.cwd(), "data");
+  const herbeoordelingenMap = path.join(dataMap, "herbeoordelingen");
 
   let successCount = 0;
   const errors = [];
 
+  // 1. Reset standaard bestanden
   bestandsnamen.forEach((bestand) => {
     const pad = path.join(dataMap, bestand);
     try {
@@ -65,11 +67,33 @@ export default function handler(req, res) {
     }
   });
 
-  // Zet ronde-status.json terug naar ronde 1
+  // 2. Leeg herbeoordelingen map
+  try {
+    if (fs.existsSync(herbeoordelingenMap)) {
+      fs.readdirSync(herbeoordelingenMap).forEach((file) => {
+        try {
+          fs.unlinkSync(path.join(herbeoordelingenMap, file));
+          successCount++;
+          console.log(`🗑️ Verwijderd: herbeoordelingen/${file}`);
+        } catch (err) {
+          errors.push({ bestand: `herbeoordelingen/${file}`, fout: err.message });
+        }
+      });
+    } else {
+      fs.mkdirSync(herbeoordelingenMap, { recursive: true });
+      console.log("📁 herbeoordelingen map aangemaakt");
+    }
+  } catch (err) {
+    console.error("⚠️ Fout bij leegmaken herbeoordelingen:", err);
+    errors.push({ bestand: "herbeoordelingen/*", fout: err.message });
+  }
+
+  // 3. Reset ronde-status
   const rondeStatusPad = path.join(dataMap, "ronde-status.json");
   try {
     fs.writeFileSync(rondeStatusPad, JSON.stringify({ ronde: 1 }, null, 2), "utf-8");
     console.log("🔄 Ronde-status teruggezet naar 1.");
+    successCount++;
   } catch (err) {
     console.error("⚠️ Fout bij schrijven ronde-status.json:", err.message);
     errors.push({ bestand: "ronde-status.json", fout: err.message });
@@ -78,11 +102,13 @@ export default function handler(req, res) {
   if (errors.length > 0) {
     console.error("⚠️ Fouten bij reset:", errors);
     return res.status(500).json({
-      message: "Sommige bestanden konden niet worden geleegd.",
+      message: `Deels gelukt (${successCount} acties).`,
       errors,
     });
   }
 
-  console.log(`🧹 Reset voltooid: ${successCount} bestanden leeggemaakt.`);
-  return res.status(200).json({ message: `Alle ${successCount} bestanden succesvol geleegd.` });
+  console.log(`🧹 Reset voltooid: ${successCount} bestanden verwerkt.`);
+  return res.status(200).json({ 
+    message: `Reset succesvol. ${successCount} bestanden/herbeoordelingen verwerkt.` 
+  });
 }

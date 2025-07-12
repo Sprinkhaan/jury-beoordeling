@@ -95,3 +95,25 @@ body, html {
   justify-content: center;
 }
 
+.loading-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+.fetch-message {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.fetch-message.fetching {
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+

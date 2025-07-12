@@ -34,6 +34,8 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const BESTANDEN = genereerBestandsnamen();
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchMessage, setFetchMessage] = useState('')
 
   useEffect(() => {
     const token = localStorage.getItem("admin_token");
@@ -163,9 +165,82 @@ export default function Admin() {
     );
   }
 
+  const handleDataReset = async () => {
+    if (!window.confirm("⚠️ ALLE DATA WORDT GERESET!\nWeet je het zeker?")) return;
+    
+    try {
+      const res = await fetch('/api/reset-data', {
+        method: 'POST',
+        headers: {
+          'x-request-key': localStorage.getItem('admin_token')
+        }
+      });
+      const data = await res.json();
+      alert(data.message || "Reset voltooid!");
+    } catch (err) {
+      alert("Reset mislukt: " + err.message);
+    }
+  };
+
+  const handleFetchData = async () => {
+    if (!window.confirm("Nieuwe kandidaten ophalen uit WordPress?\nBestanden worden overschreven!")) return;
+    
+    setIsFetching(true);
+    setFetchMessage('Bezig met ophalen...');
+
+    try {
+      const res = await fetch('/api/initieer-kandidaten', {
+        method: 'POST',
+        headers: {
+          'x-request-key': localStorage.getItem('admin_token')
+        }
+      });
+      const data = await res.json();
+      
+      setFetchMessage('Data opgehaald! Pagina vernieuwt...');
+      setTimeout(() => {
+        window.location.reload(); // Refresh de pagina
+      }, 1500);
+      
+    } catch (err) {
+      setFetchMessage('');
+      alert("Ophalen mislukt: " + err.message);
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
   return (
     <main className="admin-container">
       <header className="admin-header">
+         <section className="admin-actions">
+          <h3>⚙️ Systeemacties</h3>
+          <div className="action-buttons">
+            <button 
+              onClick={handleFetchData}
+              className="action-button fetch-button"
+              disabled={isFetching}
+            >
+              {isFetching ? (
+                <span className="loading-spinner">🌀</span>
+              ) : (
+                '🔄 Data ophalen (WordPress)'
+              )}
+            </button>
+          <button 
+            onClick={handleDataReset}
+            className="action-button reset-button"
+          >
+            🧹 Data resetten
+          </button>
+        </div>
+        {fetchMessage && (
+          <div className={`fetch-message ${isFetching ? 'fetching' : ''}`}>
+            {fetchMessage}
+          </div>
+          )}
+        </section>
+
         <h1>🛠️ Admin Dashboard</h1>
         <div className={`ronde-status ${status === 1 ? 'ronde-1' : 'ronde-2'}`}>
           Huidige ronde: {status === 1 ? "1 (actief)" : "2 (herbeoordeling)"}
@@ -316,6 +391,54 @@ export default function Admin() {
           justify-content: center;
           height: 100vh;
           gap: 1rem;
+        }
+
+        .admin-actions {
+          margin: 2rem 0;
+          padding: 1.5rem;
+          background: #f8fafc;
+          border-radius: 10px;
+          border: 1px solid #e2e8f0;
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 1rem;
+          margin-top: 1rem;
+        }
+
+        .action-button {
+          flex: 1;
+          padding: 0.75rem;
+          border: none;
+          border-radius: 8px;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .fetch-button {
+          background: #3b82f6;
+          color: white;
+        }
+
+        .fetch-button:hover {
+          background: #2563eb;
+        }
+
+        .reset-button {
+          background: #ef4444;
+          color: white;
+        }
+
+        .reset-button:hover {
+          background: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+          .action-buttons {
+            flex-direction: column;
+          }
         }
         
         .loading-spinner {
