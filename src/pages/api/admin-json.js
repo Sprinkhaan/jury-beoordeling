@@ -3,7 +3,7 @@
 import fs from "fs";
 import path from "path";
 
-// Genereer geldige bestandsnamen (veiligheidsmaatregel)
+// Genereer geldige bestandsnamen voor hoofddata
 const CATEGORIEEN = ["kinder", "mannen", "vrouwen"];
 const LEEFTIJDSGROEPEN = {
   kinder: ["4-5", "6-8", "9-12"],
@@ -36,12 +36,27 @@ export default function handler(req, res) {
   }
 
   const bestand = req.query.bestand;
-
-  if (!bestand || !toegestaneBestanden.includes(bestand)) {
-    return res.status(400).json({ message: "Ongeldig of ontbrekend bestandsnaam" });
+  if (!bestand) {
+    return res.status(400).json({ message: "Bestandsnaam ontbreekt" });
   }
 
-  const bestandPad = path.join(process.cwd(), "data", bestand);
+  let bestandPad;
+
+  // 🔧 Check of bestand een herbeoordeling bestand is
+  if (bestand.startsWith("herbeoordelingen/")) {
+    const filename = bestand.replace("herbeoordelingen/", "");
+    bestandPad = path.join(process.cwd(), "data", "herbeoordelingen", filename);
+    if (!fs.existsSync(bestandPad)) {
+      return res.status(404).json({ message: "Herbeoordeling bestand niet gevonden" });
+    }
+  } else if (toegestaneBestanden.includes(bestand)) {
+    bestandPad = path.join(process.cwd(), "data", bestand);
+    if (!fs.existsSync(bestandPad)) {
+      return res.status(404).json({ message: "Bestand niet gevonden" });
+    }
+  } else {
+    return res.status(400).json({ message: "Ongeldig bestandsnaam" });
+  }
 
   try {
     const inhoud = fs.readFileSync(bestandPad, "utf-8");
